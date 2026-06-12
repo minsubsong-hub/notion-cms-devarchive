@@ -1,5 +1,10 @@
+# Project Context
+- PRD 문서: @docs/PRD.md
+- 개발 로드맵: @docs/ROADMAP.md
+
 # 프로젝트 개요
-Next.js 15 + TypeScript + Tailwind CSS + shadcn/ui 기반 스타터킷
+DevArchive — Notion CMS 기반 개발 지식 아카이브
+(Next.js 15 + TypeScript + Tailwind CSS + shadcn/ui + Notion API)
 
 # 기술 스택
 - Next.js 15 (App Router)
