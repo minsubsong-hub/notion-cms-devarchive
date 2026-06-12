@@ -14,6 +14,14 @@
       "type": "stdio",
       "command": "npx",
       "args": ["-y", "@modelcontextprotocol/server-sequential-thinking"]
+    },
+    "shrimp-task-manager": {
+      "type": "stdio",
+      "command": "npx",
+      "args": ["-y", "@cjo4m06/mcp-shrimp-task-manager"],
+      "env": {
+        "DATA_DIR": "./shrimp_data"
+      }
     }
   }
 }

@@ -1,0 +1,229 @@
+{
+  "tasks": [
+    {
+      "id": "phase1-1",
+      "name": "Notion Integration 생성 및 환경 변수 구성",
+      "description": "Notion API 키 발급, .env.local 및 .env.example 파일 구성. NOTION_API_KEY, NOTION_DATABASE_ID, REVALIDATE_SECRET 환경 변수 설정",
+      "phase": "Phase 1",
+      "status": "pending",
+      "priority": "high",
+      "dependencies": [],
+      "acceptanceCriteria": [
+        "Notion Integration 토큰 발급 완료",
+        ".env.local 파일 생성 (gitignore 확인)",
+        ".env.example 파일 생성",
+        "Notion API 직접 호출로 DB 조회 성공 확인"
+      ]
+    },
+    {
+      "id": "phase1-2",
+      "name": "Notion 데이터베이스 생성 (PRD 명세 기준)",
+      "description": "DevArchive Posts DB 생성. 필드: Title(title), Category(select), Tags(multi_select), Status(select), PublishedAt(date), Summary(rich_text), Slug(rich_text), CoverImage(url)",
+      "phase": "Phase 1",
+      "status": "pending",
+      "priority": "high",
+      "dependencies": ["phase1-1"],
+      "acceptanceCriteria": [
+        "Notion DB 생성 완료",
+        "모든 필드 타입 PRD 명세와 일치",
+        "테스트 글 1개 이상 Draft 상태로 작성"
+      ]
+    },
+    {
+      "id": "phase1-3",
+      "name": "TypeScript 타입 정의 및 프로젝트 골격 확인",
+      "description": "src/types/post.ts에 Post, Category, Tag, PostBlock 타입 정의. layout.tsx ThemeProvider 구조 확인",
+      "phase": "Phase 1",
+      "status": "pending",
+      "priority": "high",
+      "dependencies": ["phase1-2"],
+      "acceptanceCriteria": [
+        "Post 타입이 Notion DB 필드와 1:1 매핑",
+        "npm run type-check 오류 없음",
+        "다크모드 토글 정상 작동"
+      ]
+    },
+    {
+      "id": "phase2-1",
+      "name": "Notion API 클라이언트 함수 구현",
+      "description": "src/lib/notion.ts 구현. getPublishedPosts(), getPostBySlug(slug), getPostBlocks(pageId), getCategories() 함수 작성. @notionhq/client 패키지 활용",
+      "phase": "Phase 2",
+      "status": "pending",
+      "priority": "high",
+      "dependencies": ["phase1-3"],
+      "acceptanceCriteria": [
+        "getPublishedPosts() 호출 시 Status=Published 글만 반환",
+        "getPostBySlug()가 slug 기반으로 단일 글 반환",
+        "getPostBlocks()가 페이지 블록 배열 반환",
+        "Zod 스키마로 API 응답 검증 통과"
+      ]
+    },
+    {
+      "id": "phase2-2",
+      "name": "Notion 블록 렌더러 구현",
+      "description": "src/lib/notion-renderer.ts 구현. paragraph, heading1/2/3, code, bulleted_list, numbered_list, toggle, callout, image 블록 렌더링. 미지원 블록 fallback UI 처리",
+      "phase": "Phase 2",
+      "status": "pending",
+      "priority": "high",
+      "dependencies": ["phase2-1"],
+      "acceptanceCriteria": [
+        "코드 블록이 언어 명시와 함께 렌더링",
+        "토글 블록 열기/닫기 동작",
+        "콜아웃 블록 아이콘과 함께 렌더링",
+        "미지원 블록은 fallback UI 표시"
+      ]
+    },
+    {
+      "id": "phase2-3",
+      "name": "공통 컴포넌트 개발 (PostCard, Header, Footer)",
+      "description": "src/components/common/PostCard.tsx (카드형 글 미리보기), src/components/layout/Header.tsx (로고, 네비, 다크모드), src/components/layout/Footer.tsx 구현",
+      "phase": "Phase 2",
+      "status": "pending",
+      "priority": "high",
+      "dependencies": ["phase2-1"],
+      "acceptanceCriteria": [
+        "PostCard에 썸네일, 제목, 요약, 카테고리, 발행일 표시",
+        "Header 반응형 (모바일 햄버거 메뉴)",
+        "shadcn/ui 컴포넌트 활용",
+        "TypeScript props 인터페이스 정의"
+      ]
+    },
+    {
+      "id": "phase2-4",
+      "name": "Zustand 필터 스토어 구현",
+      "description": "src/stores/filter-store.ts 구현. selectedCategory, selectedTags 상태. setCategory(), toggleTag(), resetFilter() 액션 정의",
+      "phase": "Phase 2",
+      "status": "pending",
+      "priority": "medium",
+      "dependencies": ["phase2-3"],
+      "acceptanceCriteria": [
+        "카테고리 선택 상태 전역 공유",
+        "태그 다중 선택 동작",
+        "필터 초기화 동작",
+        "any 타입 미사용"
+      ]
+    },
+    {
+      "id": "phase3-1",
+      "name": "홈 페이지 구현",
+      "description": "src/app/page.tsx 구현. 최근 발행 글 6개 카드 그리드, 카테고리 빠른 접근 버튼, '전체 글 보기' 링크. ISR revalidate: 60",
+      "phase": "Phase 3",
+      "status": "pending",
+      "priority": "high",
+      "dependencies": ["phase2-3"],
+      "acceptanceCriteria": [
+        "최근 6개 글 카드 정상 표시",
+        "반응형 그리드 (모바일 1열, 태블릿 2열, 데스크톱 3열)",
+        "ISR revalidate 60초 설정"
+      ]
+    },
+    {
+      "id": "phase3-2",
+      "name": "글 목록 페이지 구현",
+      "description": "src/app/posts/page.tsx 구현. 전체 글 카드 그리드, URL 파라미터 필터 상태 유지(?category=NextJS&tag=ISR), 페이지네이션. ISR revalidate: 60",
+      "phase": "Phase 3",
+      "status": "pending",
+      "priority": "high",
+      "dependencies": ["phase3-1", "phase2-4"],
+      "acceptanceCriteria": [
+        "전체 글 목록 페이지네이션 동작",
+        "URL 파라미터로 필터 상태 유지",
+        "URL 복사 후 열어도 동일 필터 상태"
+      ]
+    },
+    {
+      "id": "phase3-3",
+      "name": "글 상세 페이지 구현",
+      "description": "src/app/posts/[slug]/page.tsx 구현. notion-renderer로 블록 렌더링, 이전/다음 글 네비게이션, 태그 클릭 → 목록 필터 이동. ISR revalidate: 60",
+      "phase": "Phase 3",
+      "status": "pending",
+      "priority": "high",
+      "dependencies": ["phase2-2", "phase3-2"],
+      "acceptanceCriteria": [
+        "Notion 블록 전체 렌더링 정상",
+        "이전/다음 글 네비게이션 동작",
+        "태그 클릭 시 목록 필터로 이동",
+        "존재하지 않는 slug → 404 처리"
+      ]
+    },
+    {
+      "id": "phase3-4",
+      "name": "목차 컴포넌트 및 On-demand ISR API 구현",
+      "description": "src/components/post/TableOfContents.tsx (h2/h3 기반 자동 목차, 스크롤 하이라이트). src/app/api/revalidate/route.ts (REVALIDATE_SECRET 검증, 경로 재검증)",
+      "phase": "Phase 3",
+      "status": "pending",
+      "priority": "medium",
+      "dependencies": ["phase3-3"],
+      "acceptanceCriteria": [
+        "h2/h3 블록에서 목차 자동 생성",
+        "스크롤에 따라 활성 목차 항목 하이라이트",
+        "Webhook 호출 시 해당 글 즉시 재검증"
+      ]
+    },
+    {
+      "id": "phase4-1",
+      "name": "카테고리 및 태그 필터 컴포넌트 구현",
+      "description": "src/components/filter/CategoryFilter.tsx, TagFilter.tsx 구현. Zustand filter-store 연동. 동적 카테고리 목록, 태그 다중 선택, URL 파라미터 반영",
+      "phase": "Phase 4",
+      "status": "pending",
+      "priority": "medium",
+      "dependencies": ["phase3-2", "phase2-4"],
+      "acceptanceCriteria": [
+        "카테고리 + 태그 조합 필터 동작",
+        "선택된 필터 URL에 반영",
+        "필터 초기화 버튼 동작"
+      ]
+    },
+    {
+      "id": "phase4-2",
+      "name": "로딩 스켈레톤 및 SEO 메타데이터 구현",
+      "description": "src/app/posts/loading.tsx, posts/[slug]/loading.tsx 스켈레톤. generateMetadata()로 og:title, og:description 자동 설정. sitemap.ts 생성",
+      "phase": "Phase 4",
+      "status": "pending",
+      "priority": "medium",
+      "dependencies": ["phase4-1"],
+      "acceptanceCriteria": [
+        "목록/상세 페이지 로딩 스켈레톤 표시",
+        "SNS 공유 시 og:title, og:description 정상 표시",
+        "sitemap.xml 생성 확인"
+      ]
+    },
+    {
+      "id": "phase5-1",
+      "name": "성능 최적화 및 코드 품질 최종 점검",
+      "description": "next/image로 이미지 교체, React.memo 적용, Lighthouse 85점 이상 달성. deploy-helper 서브에이전트로 배포 전 체크리스트 실행. npm run type-check, lint 오류 0개 확인",
+      "phase": "Phase 5",
+      "status": "pending",
+      "priority": "medium",
+      "dependencies": ["phase4-2"],
+      "acceptanceCriteria": [
+        "Lighthouse 성능 85점 이상",
+        "접근성 90점 이상",
+        "npm run type-check 오류 0개",
+        "npm run lint 오류 0개"
+      ]
+    },
+    {
+      "id": "phase5-2",
+      "name": "Vercel 배포 및 Notion Webhook 연결",
+      "description": "Vercel 프로젝트 생성, 환경 변수 등록. Notion Webhook → Vercel On-demand ISR 연결. 배포 후 실제 Notion 글 수정 → 60초 이내 반영 확인",
+      "phase": "Phase 5",
+      "status": "pending",
+      "priority": "high",
+      "dependencies": ["phase5-1"],
+      "acceptanceCriteria": [
+        "Vercel 배포 성공",
+        "환경 변수 전체 등록 확인",
+        "Notion 글 수정 → 60초 이내 웹사이트 반영",
+        "모바일(375px) 레이아웃 깨짐 없음"
+      ]
+    }
+  ],
+  "metadata": {
+    "projectName": "DevArchive — Notion CMS 기반 개발 지식 아카이브",
+    "createdAt": "2026-06-12",
+    "basedOn": "docs/ROADMAP.md",
+    "totalTasks": 15,
+    "developmentOrder": "골격(Phase1) → 공통모듈(Phase2) → 핵심기능(Phase3) → 추가기능(Phase4) → 최적화/배포(Phase5)"
+  }
+}
