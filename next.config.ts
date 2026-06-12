@@ -1,8 +1,12 @@
 import type { NextConfig } from 'next'
 
 const nextConfig: NextConfig = {
-  experimental: {
-    typedRoutes: true,
+  output: 'standalone',
+  images: {
+    remotePatterns: [
+      { protocol: 'https', hostname: '**.notion.so' },
+      { protocol: 'https', hostname: '**.amazonaws.com' },
+    ],
   },
 }
 

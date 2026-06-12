@@ -1,64 +1,41 @@
-import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { ThemeToggle } from '@/components/common/theme-toggle'
 import Link from 'next/link'
+import { getPublishedPosts } from '@/lib/notion'
+import { PostCard } from '@/components/common/PostCard'
+import { Button } from '@/components/ui/button'
 
-export default function HomePage() {
+export const revalidate = 60
+
+export default async function HomePage() {
+  const posts = await getPublishedPosts()
+  const recentPosts = posts.slice(0, 6)
+
   return (
-    <main className="min-h-screen p-8">
-      <div className="max-w-4xl mx-auto">
-        {/* 헤더 */}
-        <div className="flex justify-between items-center mb-12">
-          <h1 className="text-3xl font-bold">Next.js Starter Kit</h1>
-          <ThemeToggle />
+    <main className="max-w-4xl mx-auto px-4 py-12">
+      <section className="mb-12">
+        <h1 className="text-4xl font-bold mb-4">DevArchive</h1>
+        <p className="text-muted-foreground text-lg">
+          Notion에서 작성한 개발 지식을 공유하는 아카이브입니다.
+        </p>
+      </section>
+
+      <section>
+        <div className="flex items-center justify-between mb-6">
+          <h2 className="text-2xl font-bold">최근 글</h2>
+          <Link href="/posts">
+            <Button variant="outline" size="sm">전체 보기</Button>
+          </Link>
         </div>
 
-        {/* 소개 카드 */}
-        <Card className="mb-8">
-          <CardHeader>
-            <CardTitle>스타터킷 구성</CardTitle>
-            <CardDescription>포함된 기술 스택과 예제 페이지</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <ul className="space-y-2 text-sm text-muted-foreground">
-              <li>✅ Next.js 15 (App Router)</li>
-              <li>✅ TypeScript (strict mode)</li>
-              <li>✅ Tailwind CSS</li>
-              <li>✅ shadcn/ui 컴포넌트</li>
-              <li>✅ 다크모드 (next-themes)</li>
-              <li>✅ Zustand 상태관리</li>
-              <li>✅ React Hook Form + Zod 폼 검증</li>
-            </ul>
-          </CardContent>
-        </Card>
-
-        {/* 예제 페이지 링크 */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg">폼 예제</CardTitle>
-              <CardDescription>React Hook Form + Zod 검증</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <Link href="/examples/form">
-                <Button className="w-full">보러가기</Button>
-              </Link>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg">상태관리 예제</CardTitle>
-              <CardDescription>Zustand 카운터 예제</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <Link href="/examples/counter">
-                <Button variant="outline" className="w-full">보러가기</Button>
-              </Link>
-            </CardContent>
-          </Card>
-        </div>
-      </div>
+        {recentPosts.length === 0 ? (
+          <p className="text-muted-foreground text-center py-12">아직 발행된 글이 없습니다.</p>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {recentPosts.map((post) => (
+              <PostCard key={post.id} post={post} />
+            ))}
+          </div>
+        )}
+      </section>
     </main>
   )
 }
