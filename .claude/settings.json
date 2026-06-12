@@ -1,0 +1,75 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-settings.json",
+  "permissions": {
+    "allow": [
+      "Bash(npm run *)",
+      "Bash(npx prisma *)",
+      "Bash(docker compose *)",
+      "Bash(git status)",
+      "Bash(git log *)",
+      "Bash(git diff *)",
+      "Bash(git add *)",
+      "Bash(git commit *)"
+    ],
+    "deny": [
+      "Read(./.env)",
+      "Read(./.env.*)",
+      "Read(./.env.production)",
+      "Read(./secrets/**)",
+      "Bash(rm -rf *)",
+      "Bash(git push --force *)",
+      "Bash(git reset --hard *)"
+    ]
+  },
+  "env": {
+    "NODE_ENV": "development"
+  },
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node -e \"const d=require('fs').readFileSync('/dev/stdin','utf8');const i=JSON.parse(d);const p=i.tool_input&&i.tool_input.file_path||'';const blocked=['.env','.env.local','.env.production','package-lock.json'];if(blocked.some(b=>p.endsWith(b))){console.error('\\u274c 보호된 파일 수정 차단: '+p);process.exit(2);}\"",
+            "description": "보호 파일(.env, package-lock.json) 수정 차단"
+          }
+        ]
+      },
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node -e \"const d=require('fs').readFileSync('/dev/stdin','utf8');const i=JSON.parse(d);const cmd=i.tool_input&&i.tool_input.command||'';const dangerous=['rm -rf','dd if','mkfs',':(){:|:&};:','chmod 777'];if(dangerous.some(p=>cmd.includes(p))){console.error('\\u274c 위험한 명령어 차단: '+cmd);process.exit(2);}\"",
+            "description": "위험한 Bash 명령어 실행 차단"
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node -e \"const d=require('fs').readFileSync('/dev/stdin','utf8');const i=JSON.parse(d);const p=i.tool_input&&i.tool_input.file_path||'';const ts=p.match(/\\.(ts|tsx)$/);const js=p.match(/\\.(js|jsx)$/);if((ts||js)&&!p.includes('node_modules')){const{execSync}=require('child_process');try{execSync('npx prettier --write \"'+p+'\" --log-level silent',{stdio:'inherit'});}catch(e){}}\"",
+            "description": "TypeScript/JavaScript 파일 저장 후 Prettier 자동 포맷팅"
+          }
+        ]
+      }
+    ],
+    "Notification": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node -e \"const d=require('fs').readFileSync('/dev/stdin','utf8');const i=JSON.parse(d);const msg=i.message||'클로드 알림';const log=new Date().toISOString()+' | '+msg+'\\n';require('fs').appendFileSync('.claude/notifications.log',log);\"",
+            "description": "알림을 .claude/notifications.log 파일에 기록"
+          }
+        ]
+      }
+    ]
+  }
+}
